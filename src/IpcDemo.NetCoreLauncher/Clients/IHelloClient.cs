@@ -2,7 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using IpcDemo.Common.Contracts;
 
-namespace IpcDemo.NetCoreLauncher.Interfaces
+namespace IpcDemo.NetCoreLauncher.Clients
 {
 	internal interface IHelloClient
 	{

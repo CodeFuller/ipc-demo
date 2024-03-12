@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using IpcDemo.NetFrameworkHelper.Interfaces;
+using IpcDemo.Common.Interfaces;
 
 namespace IpcDemo.NetFrameworkHelper
 {
@@ -14,9 +14,19 @@ namespace IpcDemo.NetFrameworkHelper
 			this.ipcServer = ipcServer ?? throw new ArgumentNullException(nameof(ipcServer));
 		}
 
-		public async Task Run(CancellationToken cancellationToken)
+		public Task Run(CancellationToken cancellationToken)
 		{
-			await ipcServer.Start(cancellationToken);
+			var serverThread = new Thread(() => RunIpcServer(cancellationToken));
+			serverThread.Start();
+
+			serverThread.Join();
+
+			return Task.CompletedTask;
+		}
+
+		private void RunIpcServer(CancellationToken cancellationToken)
+		{
+			ipcServer.Run(cancellationToken).GetAwaiter().GetResult();
 		}
 	}
 }

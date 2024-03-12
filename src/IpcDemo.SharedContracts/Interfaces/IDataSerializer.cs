@@ -6,6 +6,8 @@ namespace IpcDemo.Common.Interfaces
 	{
 		byte[] Serialize<TData>(TData data);
 
-		TData Deserialize<TData>(ReadOnlySpan<byte> data);
+		TData Deserialize<TData>(byte[] data);
+
+		Object Deserialize(Type dataType, byte[] data);
 	}
 }

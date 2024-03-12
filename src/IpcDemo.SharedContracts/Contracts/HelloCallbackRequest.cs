@@ -3,9 +3,9 @@ using System.Runtime.Serialization;
 namespace IpcDemo.Common.Contracts
 {
 	[DataContract]
-	public class GoodByeRequest
+	public class HelloCallbackRequest
 	{
 		[DataMember(Order = 1)]
-		public string Name { get; set; }
+		public string Greeting { get; set; }
 	}
 }

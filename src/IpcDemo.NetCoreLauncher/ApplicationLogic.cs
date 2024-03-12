@@ -1,8 +1,12 @@
 using System;
+using System.Diagnostics;
+using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using IpcDemo.Common.Contracts;
-using IpcDemo.NetCoreLauncher.Interfaces;
+using IpcDemo.Common.Interfaces;
+using IpcDemo.NetCoreLauncher.Clients;
 using log4net;
 
 namespace IpcDemo.NetCoreLauncher
@@ -11,35 +15,68 @@ namespace IpcDemo.NetCoreLauncher
 	{
 		private static readonly ILog Log = LogManager.GetLogger("ApplicationLogic");
 
+		private readonly IIpcServer ipcServer;
+
 		private readonly IHelloClient helloClient;
 
-		private readonly IGoodByeClient goodByeClient;
-
-		public ApplicationLogic(IHelloClient helloClient, IGoodByeClient goodByeClient)
+		public ApplicationLogic(IIpcServer ipcServer, IHelloClient helloClient)
 		{
+			this.ipcServer = ipcServer ?? throw new ArgumentNullException(nameof(ipcServer));
 			this.helloClient = helloClient ?? throw new ArgumentNullException(nameof(helloClient));
-			this.goodByeClient = goodByeClient ?? throw new ArgumentNullException(nameof(goodByeClient));
 		}
 
 		public async Task Run(CancellationToken cancellationToken)
 		{
-			var helloRequest = new HelloRequest
+			var serverThread = new Thread(() => RunIpcServer(cancellationToken));
+			serverThread.Start();
+
+			Log.Info("Starting helper process ...");
+
+			var helperExecutablePath = GetHelperExecutablePath();
+
+			var helperProcess = new Process();
+			helperProcess.StartInfo.FileName = helperExecutablePath;
+			helperProcess.StartInfo.WorkingDirectory = Path.GetDirectoryName(helperExecutablePath);
+			helperProcess.StartInfo.Arguments = ipcServer.GetAddress();
+			helperProcess.StartInfo.UseShellExecute = false;
+			helperProcess.Start();
+
+			Log.Info("Helper process was started successfully");
+
+			Log.Info("Sending request to helper ...");
+
+			var request = new HelloRequest
 			{
-				Name = "CodeFuller",
+				Name = "Client",
 			};
 
-			Log.Info("Sending SayHello request ...");
-			var helloResponse = await helloClient.SayHello(helloRequest, cancellationToken);
-			Log.Info($"SayHello response: '{helloResponse.Greeting}'");
+			var response = await helloClient.SayHello(request, cancellationToken);
 
-			var goodByeRequest = new GoodByeRequest
-			{
-				Name = "CodeFuller",
-			};
+			Log.Info($"Hello response: '{response.Greeting}'");
 
-			Log.Info("Sending SayGoodBye request ...");
-			var goodByeResponse = await goodByeClient.SayGoodBye(goodByeRequest, cancellationToken);
-			Log.Info($"SayGoodBye response: '{goodByeResponse.Farewell}'");
+			serverThread.Join();
+		}
+
+		private void RunIpcServer(CancellationToken cancellationToken)
+		{
+			ipcServer.Run(cancellationToken).GetAwaiter().GetResult();
+		}
+
+		private static string GetHelperExecutablePath()
+		{
+			var currentExecutablePath = Assembly.GetExecutingAssembly().Location;
+			var currentExecutableDirectory = Path.GetDirectoryName(currentExecutablePath);
+			var parent1 = GetParentDirectoryPath(currentExecutableDirectory);
+			var parent2 = GetParentDirectoryPath(parent1);
+			var parent3 = GetParentDirectoryPath(parent2);
+			var parent4 = GetParentDirectoryPath(parent3);
+
+			return Path.Combine(parent4, "IpcDemo.NetFrameworkHelper/bin/Debug/net48/IpcDemo.NetFrameworkHelper.exe");
+		}
+
+		private static string GetParentDirectoryPath(string path)
+		{
+			return Directory.GetParent(path).FullName;
 		}
 	}
 }

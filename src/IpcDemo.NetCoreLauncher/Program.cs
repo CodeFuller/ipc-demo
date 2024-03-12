@@ -2,8 +2,9 @@ using System;
 using System.IO;
 using System.Threading;
 using IpcDemo.Common.Extensions;
+using IpcDemo.Common.Interfaces;
 using IpcDemo.NetCoreLauncher.Clients;
-using IpcDemo.NetCoreLauncher.Interfaces;
+using IpcDemo.NetCoreLauncher.Controllers;
 using log4net;
 using log4net.Config;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,9 +26,11 @@ namespace IpcDemo.NetCoreLauncher
 				var services = new ServiceCollection();
 
 				services.AddIpcDemoServices();
-				services.AddSingleton<IIpcClient, NamedPipeIpcClient>();
+				services.AddServerIpcChannel();
+
+				services.AddSingleton<IIpcController, HelloCallbackController>();
 				services.AddSingleton<IHelloClient, HelloClient>();
-				services.AddSingleton<IGoodByeClient, GoodByeClient>();
+
 				services.AddSingleton<ApplicationLogic>();
 
 				using (var serviceProvider = services.BuildServiceProvider())

@@ -1,9 +1,10 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using IpcDemo.Common;
 using IpcDemo.Common.Contracts;
-using IpcDemo.NetCoreLauncher.Interfaces;
+using IpcDemo.Common.Interfaces;
+using static IpcDemo.Common.ControllerNames;
+using static IpcDemo.Common.HelloControllerActions;
 
 namespace IpcDemo.NetCoreLauncher.Clients
 {
@@ -18,7 +19,7 @@ namespace IpcDemo.NetCoreLauncher.Clients
 
 		public Task<HelloResponse> SayHello(HelloRequest request, CancellationToken cancellationToken)
 		{
-			return ipcClient.CallServer<HelloRequest, HelloResponse>(RequestTypes.SayHello, request, cancellationToken);
+			return ipcClient.CallServer<HelloRequest, HelloResponse>(HelloControllerName, SayHelloActionName, request, cancellationToken);
 		}
 	}
 }
