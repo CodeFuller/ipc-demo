@@ -42,9 +42,10 @@ namespace IpcDemo.Common.Internal
 				Data = dataSerializer.Serialize(requestData),
 			};
 
+			Log.Debug($"Sending request: [Controller: {controllerName}][Action: {actionName}][Id: {requestId}]");
+
 			Task ClientCall()
 			{
-				Log.Debug($"Writing request message ({typeof(TRequest).Name}) to the channel ...");
 				return ipcChannel.WriteMessage(requestMessage, cancellationToken);
 			}
 

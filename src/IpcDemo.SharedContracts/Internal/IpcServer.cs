@@ -13,7 +13,7 @@ namespace IpcDemo.Common.Internal
 	{
 		private static readonly ILog Log = LogManager.GetLogger("IpcServer");
 
-		private struct ActionKey
+		private readonly struct ActionKey
 		{
 			public string ControllerName { get; }
 
@@ -81,7 +81,6 @@ namespace IpcDemo.Common.Internal
 
 			while (!cancellationToken.IsCancellationRequested)
 			{
-				Log.Debug("Reading incoming message from the channel ...");
 				var ipcMessage = await ipcChannel.ReadMessage(cancellationToken);
 
 				switch (ipcMessage.MessageType)
@@ -107,12 +106,11 @@ namespace IpcDemo.Common.Internal
 		// TODO: Handle exceptions for background tasks.
 		private async Task ProcessRequest(IpcMessage requestMessage, CancellationToken cancellationToken)
 		{
-			Log.Debug("Processing IPC request ...");
-
 			var requestData = dataSerializer.Deserialize<RequestDataContract>(requestMessage.Data);
 
-			var actionKey = new ActionKey(requestData.ControllerName, requestData.ActionName);
+			Log.Debug($"Processing request: [Controller: {requestData.ControllerName}][Action: {requestData.ActionName}][Id: {requestMessage.RequestId}]");
 
+			var actionKey = new ActionKey(requestData.ControllerName, requestData.ActionName);
 			if (!registeredActions.TryGetValue(actionKey, out var actionDescriptor))
 			{
 				throw new NotSupportedException($"Action {actionKey.ActionName} from controller {actionKey.ControllerName} is not supported");
@@ -129,10 +127,9 @@ namespace IpcDemo.Common.Internal
 				Data = dataSerializer.Serialize(response),
 			};
 
-			Log.Debug("Writing response message to the channel ...");
 			await ipcChannel.WriteMessage(responseMessage, cancellationToken);
 
-			Log.Debug("IPC request was processed successfully");
+			Log.Debug($"Processed request: [Controller: {requestData.ControllerName}][Action: {requestData.ActionName}][Id: {requestMessage.RequestId}]");
 		}
 
 		private void ProcessResponse(IpcMessage responseMessage)

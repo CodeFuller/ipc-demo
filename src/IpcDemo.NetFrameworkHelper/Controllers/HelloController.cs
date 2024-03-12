@@ -30,8 +30,6 @@ namespace IpcDemo.NetFrameworkHelper.Controllers
 		{
 			Log.Info($"Processing Hello request for '{request.Name}' ...");
 
-			Log.Info("Calling callback ...");
-
 			var callbackRequest = new HelloCallbackRequest
 			{
 				Greeting = "What is your name?",

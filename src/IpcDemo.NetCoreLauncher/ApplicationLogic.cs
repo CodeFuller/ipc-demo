@@ -43,8 +43,6 @@ namespace IpcDemo.NetCoreLauncher
 
 			Log.Info("Helper process was started successfully");
 
-			Log.Info("Sending request to helper ...");
-
 			var request = new HelloRequest
 			{
 				Name = "Client",
