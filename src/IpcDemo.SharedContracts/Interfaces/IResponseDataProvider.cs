@@ -8,5 +8,7 @@ namespace IpcDemo.Common.Interfaces
 		Task<byte[]> ProvideResponseData(Guid requestId, Func<Task> clientCall);
 
 		void PostResponseData(Guid requestId, byte[] responseData);
+
+		void PostResponseError(Guid requestId, IpcRequestFailedException exception);
 	}
 }

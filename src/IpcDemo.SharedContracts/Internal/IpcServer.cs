@@ -95,6 +95,10 @@ namespace IpcDemo.Common.Internal
 						ProcessResponse(ipcMessage);
 						break;
 
+					case IpcMessageType.Error:
+						ProcessError(ipcMessage);
+						break;
+
 					default:
 						throw new NotSupportedException($"IPC message type is not supported: {ipcMessage.MessageType}");
 				}
@@ -116,16 +120,38 @@ namespace IpcDemo.Common.Internal
 				throw new NotSupportedException($"Action {actionKey.ActionName} from controller {actionKey.ControllerName} is not supported");
 			}
 
-			var request = dataSerializer.Deserialize(actionDescriptor.RequestType, requestData.Data);
+			IpcMessage responseMessage;
 
-			var response = await actionDescriptor.Action(request, cancellationToken);
-
-			var responseMessage = new IpcMessage
+			try
 			{
-				MessageType = IpcMessageType.Response,
-				RequestId = requestMessage.RequestId,
-				Data = dataSerializer.Serialize(response),
-			};
+				var request = dataSerializer.Deserialize(actionDescriptor.RequestType, requestData.Data);
+
+				var response = await actionDescriptor.Action(request, cancellationToken);
+
+				responseMessage = new IpcMessage
+				{
+					MessageType = IpcMessageType.Response,
+					RequestId = requestMessage.RequestId,
+					Data = dataSerializer.Serialize(response),
+				};
+			}
+			catch (Exception e)
+			{
+				Log.Error($"Failed to process request [Controller: {requestData.ControllerName}][Action: {requestData.ActionName}][Id: {requestMessage.RequestId}]", e);
+
+				var errorData = new ErrorDataContract
+				{
+					ErrorMessage = e.Message,
+					StackTrace = e.StackTrace,
+				};
+
+				responseMessage = new IpcMessage
+				{
+					MessageType = IpcMessageType.Error,
+					RequestId = requestMessage.RequestId,
+					Data = dataSerializer.Serialize(errorData),
+				};
+			}
 
 			await ipcChannel.WriteMessage(responseMessage, cancellationToken);
 
@@ -134,7 +160,18 @@ namespace IpcDemo.Common.Internal
 
 		private void ProcessResponse(IpcMessage responseMessage)
 		{
+			Log.Debug($"Received response for request {responseMessage.RequestId}");
 			_responseDataProvider.PostResponseData(responseMessage.RequestId, responseMessage.Data);
+		}
+
+		private void ProcessError(IpcMessage errorMessage)
+		{
+			Log.Debug($"Received error for request {errorMessage.RequestId}");
+
+			var errorData = dataSerializer.Deserialize<ErrorDataContract>(errorMessage.Data);
+			var exception = new IpcRequestFailedException(errorData.ErrorMessage, errorData.StackTrace);
+
+			_responseDataProvider.PostResponseError(errorMessage.RequestId, exception);
 		}
 	}
 }

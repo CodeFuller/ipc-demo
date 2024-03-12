@@ -5,5 +5,6 @@ namespace IpcDemo.Common.Data
 		Unknown,
 		Request,
 		Response,
+		Error,
 	}
 }

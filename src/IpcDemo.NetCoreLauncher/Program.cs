@@ -29,7 +29,9 @@ namespace IpcDemo.NetCoreLauncher
 				services.AddServerIpcChannel();
 
 				services.AddSingleton<IIpcController, HelloCallbackController>();
+
 				services.AddSingleton<IHelloClient, HelloClient>();
+				services.AddSingleton<IErrorClient, ErrorClient>();
 
 				services.AddSingleton<ApplicationLogic>();
 

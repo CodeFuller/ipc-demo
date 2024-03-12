@@ -30,7 +30,6 @@ namespace IpcDemo.Common.Internal
 
 			if (completedTask == callbackCompletionSource.Task)
 			{
-				Log.Debug($"Completed request {requestId}");
 				return await callbackCompletionSource.Task;
 			}
 
@@ -43,6 +42,13 @@ namespace IpcDemo.Common.Internal
 			var callbackCompletionSource = GetCallbackTaskCompletionSource(requestId);
 
 			callbackCompletionSource.SetResult(responseData);
+		}
+
+		public void PostResponseError(Guid requestId, IpcRequestFailedException exception)
+		{
+			var callbackCompletionSource = GetCallbackTaskCompletionSource(requestId);
+
+			callbackCompletionSource.SetException(exception);
 		}
 
 		private TaskCompletionSource<byte[]> GetCallbackTaskCompletionSource(Guid requestId)

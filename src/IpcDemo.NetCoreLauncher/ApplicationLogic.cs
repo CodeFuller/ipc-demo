@@ -4,6 +4,7 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using IpcDemo.Common;
 using IpcDemo.Common.Contracts;
 using IpcDemo.Common.Interfaces;
 using IpcDemo.NetCoreLauncher.Clients;
@@ -19,10 +20,13 @@ namespace IpcDemo.NetCoreLauncher
 
 		private readonly IHelloClient helloClient;
 
-		public ApplicationLogic(IIpcServer ipcServer, IHelloClient helloClient)
+		private readonly IErrorClient errorClient;
+
+		public ApplicationLogic(IIpcServer ipcServer, IHelloClient helloClient, IErrorClient errorClient)
 		{
 			this.ipcServer = ipcServer ?? throw new ArgumentNullException(nameof(ipcServer));
 			this.helloClient = helloClient ?? throw new ArgumentNullException(nameof(helloClient));
+			this.errorClient = errorClient ?? throw new ArgumentNullException(nameof(errorClient));
 		}
 
 		public async Task Run(CancellationToken cancellationToken)
@@ -43,16 +47,35 @@ namespace IpcDemo.NetCoreLauncher
 
 			Log.Info("Helper process was started successfully");
 
-			var request = new HelloRequest
+			await TestHelloRequest(cancellationToken);
+
+			await TestErrorRequest(cancellationToken);
+
+			serverThread.Join();
+		}
+
+		private async Task TestHelloRequest(CancellationToken cancellationToken)
+		{
+			var helloRequest = new HelloRequest
 			{
 				Name = "Client",
 			};
 
-			var response = await helloClient.SayHello(request, cancellationToken);
+			var response = await helloClient.SayHello(helloRequest, cancellationToken);
 
 			Log.Info($"Hello response: '{response.Greeting}'");
+		}
 
-			serverThread.Join();
+		private async Task TestErrorRequest(CancellationToken cancellationToken)
+		{
+			try
+			{
+				await errorClient.TriggerError(cancellationToken);
+			}
+			catch (IpcRequestFailedException e)
+			{
+				Log.Info("Error request has expectedly failed: ", e);
+			}
 		}
 
 		private void RunIpcServer(CancellationToken cancellationToken)

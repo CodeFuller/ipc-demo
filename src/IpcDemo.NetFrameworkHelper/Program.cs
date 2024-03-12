@@ -36,6 +36,8 @@ namespace IpcDemo.NetFrameworkHelper
 				services.AddClientIpcChannel(args.Single());
 
 				services.AddSingleton<IIpcController, HelloController>();
+				services.AddSingleton<IIpcController, ErrorController>();
+
 				services.AddSingleton<IHelloCallbackClient, HelloCallbackClient>();
 
 				services.AddSingleton<ApplicationLogic>();
