@@ -29,9 +29,12 @@ namespace IpcDemo.NetCoreLauncher
 
 		public async Task<TResponse> CallServer<TRequest, TResponse>(RequestTypes requestType, TRequest request, CancellationToken cancellationToken)
 		{
-			Log.Info("Connecting to server ...");
-			await pipeClientStream.ConnectAsync(cancellationToken);
-			Log.Info("Connected to server");
+			if (!pipeClientStream.IsConnected)
+			{
+				Log.Info("Connecting to server ...");
+				await pipeClientStream.ConnectAsync(cancellationToken);
+				Log.Info("Connected to server");
+			}
 
 			var streamWriter = new BinaryWriter(pipeClientStream);
 
@@ -40,8 +43,11 @@ namespace IpcDemo.NetCoreLauncher
 			streamWriter.WriteData(request, dataSerializer);
 			Log.Info("Sent request to server");
 
-			// TODO: Read response from the server.
-			return default;
+			var streamReader = new BinaryReader(pipeClientStream);
+			var data = streamReader.ReadData();
+			var response = dataSerializer.Deserialize<TResponse>(data);
+
+			return response;
 		}
 	}
 }

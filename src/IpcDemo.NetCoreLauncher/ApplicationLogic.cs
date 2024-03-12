@@ -40,8 +40,6 @@ namespace IpcDemo.NetCoreLauncher
 			Log.Info("Sending SayGoodBye request ...");
 			var goodByeResponse = await goodByeClient.SayGoodBye(goodByeRequest, cancellationToken);
 			Log.Info($"SayGoodBye response: '{goodByeResponse.Farewell}'");
-
-			await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
 		}
 	}
 }
