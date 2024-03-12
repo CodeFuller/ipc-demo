@@ -24,7 +24,7 @@ namespace IpcDemo.NetCoreLauncher
 		{
 			this.dataSerializer = dataSerializer ?? throw new ArgumentNullException(nameof(dataSerializer));
 
-			pipeClientStream = new NamedPipeClientStream(".", Constants.PipeName, PipeDirection.InOut, PipeOptions.CurrentUserOnly, TokenImpersonationLevel.None);
+			pipeClientStream = new NamedPipeClientStream(".", Constants.PipeName, PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly, TokenImpersonationLevel.None);
 		}
 
 		public async Task<TResponse> CallServer<TRequest, TResponse>(RequestTypes requestType, TRequest request, CancellationToken cancellationToken)

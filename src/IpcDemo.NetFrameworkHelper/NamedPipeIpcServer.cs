@@ -32,7 +32,7 @@ namespace IpcDemo.NetFrameworkHelper
 		public async Task Start(CancellationToken cancellationToken)
 		{
 			Log.Info("Creating pipe stream ...");
-			var pipeServerStream = new NamedPipeServerStream(Constants.PipeName, PipeDirection.InOut, 1);
+			var pipeServerStream = new NamedPipeServerStream(Constants.PipeName, PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous, 0, 0, null, HandleInheritability.None, (PipeAccessRights)0);
 
 			Log.Info("Waiting for connection ...");
 			await pipeServerStream.WaitForConnectionAsync(cancellationToken);
