@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using IpcDemo.Common.Data;
-using IpcDemo.Common.Extensions;
 using IpcDemo.Common.Interfaces;
 using log4net;
 
@@ -83,7 +82,7 @@ namespace IpcDemo.Common.Internal
 			while (!cancellationToken.IsCancellationRequested)
 			{
 				Log.Debug("Reading incoming message from the channel ...");
-				var ipcMessage = await ipcChannel.ReadData<IpcMessage>(dataSerializer, cancellationToken);
+				var ipcMessage = await ipcChannel.ReadMessage(cancellationToken);
 
 				switch (ipcMessage.MessageType)
 				{
@@ -131,7 +130,7 @@ namespace IpcDemo.Common.Internal
 			};
 
 			Log.Debug("Writing response message to the channel ...");
-			await ipcChannel.WriteData(responseMessage, dataSerializer, cancellationToken);
+			await ipcChannel.WriteMessage(responseMessage, cancellationToken);
 
 			Log.Debug("IPC request was processed successfully");
 		}

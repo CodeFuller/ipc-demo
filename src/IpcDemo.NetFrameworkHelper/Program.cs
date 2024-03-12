@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using IpcDemo.Common.Extensions;
+using IpcDemo.Common;
 using IpcDemo.Common.Interfaces;
 using IpcDemo.NetFrameworkHelper.Clients;
 using IpcDemo.NetFrameworkHelper.Controllers;

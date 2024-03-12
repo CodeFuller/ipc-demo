@@ -2,7 +2,7 @@ using IpcDemo.Common.Interfaces;
 using IpcDemo.Common.Internal;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace IpcDemo.Common.Extensions
+namespace IpcDemo.Common
 {
 	public static class ServiceCollectionExtensions
 	{
@@ -18,14 +18,14 @@ namespace IpcDemo.Common.Extensions
 
 		public static IServiceCollection AddServerIpcChannel(this IServiceCollection services)
 		{
-			services.AddSingleton<IIpcChannel>(PipeIpcChannel.CreateServerSideChannel());
+			services.AddSingleton(PipeIpcChannel.CreateServerSideChannel());
 
 			return services;
 		}
 
 		public static IServiceCollection AddClientIpcChannel(this IServiceCollection services, string serverAddress)
 		{
-			services.AddSingleton<IIpcChannel>(PipeIpcChannel.CreateClientSideChannel(serverAddress));
+			services.AddSingleton(PipeIpcChannel.CreateClientSideChannel(serverAddress));
 
 			return services;
 		}

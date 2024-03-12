@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using IpcDemo.Common.Data;
-using IpcDemo.Common.Extensions;
 using IpcDemo.Common.Interfaces;
 using log4net;
 
@@ -46,7 +45,7 @@ namespace IpcDemo.Common.Internal
 			Task ClientCall()
 			{
 				Log.Debug($"Writing request message ({typeof(TRequest).Name}) to the channel ...");
-				return ipcChannel.WriteData(requestMessage, dataSerializer, cancellationToken);
+				return ipcChannel.WriteMessage(requestMessage, cancellationToken);
 			}
 
 			var responseData = await _responseDataProvider.ProvideResponseData(requestId, ClientCall);

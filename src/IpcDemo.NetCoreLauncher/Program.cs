@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Threading;
-using IpcDemo.Common.Extensions;
+using IpcDemo.Common;
 using IpcDemo.Common.Interfaces;
 using IpcDemo.NetCoreLauncher.Clients;
 using IpcDemo.NetCoreLauncher.Controllers;
