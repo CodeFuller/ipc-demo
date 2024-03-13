@@ -7,5 +7,7 @@ namespace IpcDemo.NetCoreLauncher.Clients
 	internal interface IHelloClient
 	{
 		Task<HelloResponse> SayHello(HelloRequest request, CancellationToken cancellationToken);
+
+		Task<HowAreYouResponse> HowAreYou(CancellationToken cancellationToken);
 	}
 }

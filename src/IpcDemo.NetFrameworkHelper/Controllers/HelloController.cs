@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using IpcDemo.Common.Contracts;
+using IpcDemo.Common.Extensions;
 using IpcDemo.Common.Interfaces;
 using IpcDemo.NetFrameworkHelper.Clients;
 using log4net;
@@ -24,6 +25,7 @@ namespace IpcDemo.NetFrameworkHelper.Controllers
 		public void RegisterActions(IIpcServer ipcServer)
 		{
 			ipcServer.RegisterAction<HelloRequest, HelloResponse>(HelloControllerName, SayHelloActionName, SayHello);
+			ipcServer.RegisterAction<HowAreYouResponse>(HelloControllerName, HowAreYouActionName, HowAreYou);
 		}
 
 		public async Task<HelloResponse> SayHello(HelloRequest request, CancellationToken cancellationToken)
@@ -43,6 +45,16 @@ namespace IpcDemo.NetFrameworkHelper.Controllers
 			{
 				Greeting = $"Hello, {callbackResponse.Name}!",
 			};
+		}
+
+		public Task<HowAreYouResponse> HowAreYou(CancellationToken cancellationToken)
+		{
+			var response = new HowAreYouResponse
+			{
+				Status = "I am OK",
+			};
+
+			return Task.FromResult(response);
 		}
 	}
 }

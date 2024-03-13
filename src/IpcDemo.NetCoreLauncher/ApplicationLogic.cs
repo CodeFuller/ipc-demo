@@ -8,6 +8,7 @@ using IpcDemo.Common;
 using IpcDemo.Common.Contracts;
 using IpcDemo.Common.Interfaces;
 using IpcDemo.NetCoreLauncher.Clients;
+using IpcDemo.NetCoreLauncher.Interfaces;
 using log4net;
 
 namespace IpcDemo.NetCoreLauncher
@@ -16,14 +17,17 @@ namespace IpcDemo.NetCoreLauncher
 	{
 		private static readonly ILog Log = LogManager.GetLogger("ApplicationLogic");
 
+		private readonly IChildProcessManager childProcessManager;
+
 		private readonly IIpcServer ipcServer;
 
 		private readonly IHelloClient helloClient;
 
 		private readonly IErrorClient errorClient;
 
-		public ApplicationLogic(IIpcServer ipcServer, IHelloClient helloClient, IErrorClient errorClient)
+		public ApplicationLogic(IChildProcessManager childProcessManager, IIpcServer ipcServer, IHelloClient helloClient, IErrorClient errorClient)
 		{
+			this.childProcessManager = childProcessManager ?? throw new ArgumentNullException(nameof(childProcessManager));
 			this.ipcServer = ipcServer ?? throw new ArgumentNullException(nameof(ipcServer));
 			this.helloClient = helloClient ?? throw new ArgumentNullException(nameof(helloClient));
 			this.errorClient = errorClient ?? throw new ArgumentNullException(nameof(errorClient));
@@ -34,24 +38,23 @@ namespace IpcDemo.NetCoreLauncher
 			var serverThread = new Thread(() => RunIpcServer(cancellationToken));
 			serverThread.Start();
 
-			Log.Info("Starting helper process ...");
-
-			var helperExecutablePath = GetHelperExecutablePath();
-
-			var helperProcess = new Process();
-			helperProcess.StartInfo.FileName = helperExecutablePath;
-			helperProcess.StartInfo.WorkingDirectory = Path.GetDirectoryName(helperExecutablePath);
-			helperProcess.StartInfo.Arguments = ipcServer.GetAddress();
-			helperProcess.StartInfo.UseShellExecute = false;
-			helperProcess.Start();
-
-			Log.Info("Helper process was started successfully");
+			var childProcessManagerThread = new Thread(() => RunChildProcessManager(cancellationToken));
+			childProcessManagerThread.Start();
 
 			await TestHelloRequest(cancellationToken);
 
 			await TestErrorRequest(cancellationToken);
 
+			while (!cancellationToken.IsCancellationRequested)
+			{
+				var response = await helloClient.HowAreYou(cancellationToken);
+				Log.Info($"Q: How are you? A: {response.Status}");
+
+				await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+			}
+
 			serverThread.Join();
+			childProcessManagerThread.Join();
 		}
 
 		private async Task TestHelloRequest(CancellationToken cancellationToken)
@@ -81,6 +84,19 @@ namespace IpcDemo.NetCoreLauncher
 		private void RunIpcServer(CancellationToken cancellationToken)
 		{
 			ipcServer.Run(cancellationToken).GetAwaiter().GetResult();
+		}
+
+		private void RunChildProcessManager(CancellationToken cancellationToken)
+		{
+			var helperExecutablePath = GetHelperExecutablePath();
+
+			var helperProcess = new Process();
+			helperProcess.StartInfo.FileName = helperExecutablePath;
+			helperProcess.StartInfo.WorkingDirectory = Path.GetDirectoryName(helperExecutablePath);
+			helperProcess.StartInfo.Arguments = ipcServer.GetAddress();
+			helperProcess.StartInfo.UseShellExecute = false;
+
+			childProcessManager.RunChildProcess(helperProcess, cancellationToken).GetAwaiter().GetResult();
 		}
 
 		private static string GetHelperExecutablePath()

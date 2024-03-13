@@ -5,6 +5,8 @@ using IpcDemo.Common;
 using IpcDemo.Common.Interfaces;
 using IpcDemo.NetCoreLauncher.Clients;
 using IpcDemo.NetCoreLauncher.Controllers;
+using IpcDemo.NetCoreLauncher.Interfaces;
+using IpcDemo.NetCoreLauncher.Internal;
 using log4net;
 using log4net.Config;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,6 +34,8 @@ namespace IpcDemo.NetCoreLauncher
 
 				services.AddSingleton<IHelloClient, HelloClient>();
 				services.AddSingleton<IErrorClient, ErrorClient>();
+
+				services.AddSingleton<IChildProcessManager, ChildProcessManager>();
 
 				services.AddSingleton<ApplicationLogic>();
 
